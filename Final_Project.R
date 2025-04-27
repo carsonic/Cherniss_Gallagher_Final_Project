@@ -20,3 +20,7 @@ faa_data <- faa_data |>
 
 glimpse(faa_data)
 
+# Possible Research Questions: 
+# Which type of planes ("aircraft" variable) have the most collisions? 
+# During what time of day ("time_of_day" variable) are collisions most common? 
+# Are wildlife strikes more common in certain FAA regions ("faaregion" variable) or states ("state" variable)?
