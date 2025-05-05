@@ -9,7 +9,8 @@ ui <- navbarPage(
              h3("Project Overview"),
              p("DATA-413 Final Project"),
              p("Carson Cherniss & Ainsley Gallagher"),
-             p("Research Question: During what time of day are wildlife strikes most common?")
+             h4("Research Question:"),
+             p("During what time of day are wildlife strikes most common?")
            )
   ),
   tabPanel("EDA: Time of Day",
@@ -23,20 +24,20 @@ ui <- navbarPage(
   tabPanel("EDA: Monthly Trends",
            fluidPage(
              h3("Wildlife Strikes by Month"),
-             selectInput("monthSelect", "Select a Month:", choices = month.name),
+             selectInput("selected_month", "Select a Month:", choices = month.name),
              plotlyOutput("monthlyPlot")
            )
   ), 
   tabPanel("Statistical Test",
            fluidPage(
-             h3("Chi-Square Test Results")
+             h2("Chi-Square Test Results")
            )
   )
 )
 
 # Server
 server <- function(input, output) {
-  # Load data *inside* the server so it only loads when the app runs
+  # Load data inside the server so it only loads when the app runs
   faa_data <- reactive({
     read_excel("Public.xlsx") |>
       mutate(
@@ -80,7 +81,7 @@ server <- function(input, output) {
     ggplotly(
       faa_data() |> 
         filter(!is.na(time_of_day)) |> 
-        mutate(month = lubridate::month(incident_date, label = TRUE, abbr = FALSE)) |>  # full month names
+        mutate(month = lubridate::month(incident_date, label = TRUE, abbr = FALSE)) |>
         filter(month == input$selected_month) |>
         count(time_of_day) |> 
         ggplot(aes(x = time_of_day, y = n, fill = time_of_day)) +
