@@ -1,5 +1,5 @@
 # Load Packages
-pacman::p_load(tidyverse, readxl, lubridate, janitor)
+pacman::p_load(tidyverse, readxl, lubridate, janitor, plotly)
 
 # Read the data
 faa_data <- read_excel("Public.xlsx")
@@ -55,7 +55,6 @@ faa_data |>
        y = "Number of Strikes")
 
 # If we want to see if this pattern changes throughout the year, we can do that too
-
 faa_data |> 
   filter(!is.na(time_of_day)) |> 
   mutate(month = lubridate::month(incident_date, label = TRUE)) |> 
