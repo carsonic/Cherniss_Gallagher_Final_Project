@@ -1,22 +1,36 @@
-pacman::p_load(tidyverse, readxl, lubridate, janitor, shiny, plotly)
+pacman::p_load(tidyverse, readxl, lubridate, janitor, shiny, plotly, shinythemes)
 
 # App setup
-ui <- fluidPage(
-  titlePanel("FAA Wildlife Strikes"),
-  sidebarLayout(
-    sidebarPanel(
-      selectInput(
-        inputId = "selected_month",
-        label = "Select a Month:",
-        choices = month.name,
-        selected = "January"
-      )
-    ),
-    mainPanel(
-      plotlyOutput("timeOfDayPlot"),
-      plotlyOutput("timePlot"),
-      plotlyOutput("monthlyPlot")
-    )
+ui <- navbarPage(
+  title = "FAA Wildlife Strikes",
+  theme = shinythemes::shinytheme("darkly"),
+  tabPanel("Overview",
+           fluidPage(
+             h3("Project Overview"),
+             p("DATA-413 Final Project"),
+             p("Carson Cherniss & Ainsley Gallagher"),
+             p("Research Question: During what time of day are wildlife strikes most common?")
+           )
+  ),
+  tabPanel("EDA: Time of Day",
+           fluidPage(
+             h3("Wildlife Strikes by Time of Day"),
+             plotlyOutput("timeOfDayPlot"), 
+             h3("Wildlife Strikes by Hour of Day"),
+             plotlyOutput("timePlot")
+           )
+  ),
+  tabPanel("EDA: Monthly Trends",
+           fluidPage(
+             h3("Wildlife Strikes by Month"),
+             selectInput("monthSelect", "Select a Month:", choices = month.name),
+             plotlyOutput("monthlyPlot")
+           )
+  ), 
+  tabPanel("Statistical Test",
+           fluidPage(
+             h3("Chi-Square Test Results")
+           )
   )
 )
 
@@ -61,13 +75,13 @@ server <- function(input, output) {
   
   # Monthly plot if we want to keep it
   output$monthlyPlot <- renderPlotly({
-    req(input$selected_month)  # ensures a selection is made
+    req(input$selected_month)
     
     ggplotly(
       faa_data() |> 
         filter(!is.na(time_of_day)) |> 
         mutate(month = lubridate::month(incident_date, label = TRUE, abbr = FALSE)) |>  # full month names
-        filter(month == input$selected_month) |>  # filter by the selected month
+        filter(month == input$selected_month) |>
         count(time_of_day) |> 
         ggplot(aes(x = time_of_day, y = n, fill = time_of_day)) +
         geom_col() +
