@@ -5,8 +5,9 @@ format: pdf
 ---
 
 ## Data and Data Cleaning
-### Dataset: 
-<https://wildlife.faa.gov/home>
+**Shiny App:** <>
+**GitHub:** <https://github.com/carsonic/Cherniss_Gallagher_Final_Project>
+**Dataset:** <https://wildlife.faa.gov/home>
 
 ### Research Question: 
 **During what time of day are wildlife collisions most common?**
@@ -78,164 +79,114 @@ faa_data |>
        y = "Number of Strikes")
 ```
 
-The final graph will allow us to add an interactive element to the shiny app. The code will change slightly when used in the app, but it will allow us to see the `time_ofday` variable bar graph but broken down by month. 
+The additional 2 graphs will allow us to add an interactive element to the shiny app. The code will change slightly when used in the app, but it will allow us to see the `time_ofday` variable bar graph but broken down by month. 
 ```{r}
 #| message: false
 #| warning: false
 
-faa_data |> 
-  filter(!is.na(time_of_day)) |> 
-  mutate(month = lubridate::month(incident_date, label = TRUE)) |> 
-  count(month, time_of_day) |> 
-  ggplot(aes(x = month, y = n, fill = time_of_day)) +
-  geom_col(position = "dodge") +
+# Graph 3: Monthly plot
+selected_month <- "October"
+
+monthly_plot <- faa_data |>
+  filter(!is.na(time_of_day)) |>
+  mutate(month = lubridate::month(incident_date, label = TRUE, abbr = FALSE)) |>
+  filter(month == selected_month) |>
+  count(time_of_day) |>
+  ggplot(aes(x = time_of_day, y = n, fill = time_of_day)) +
+  geom_col() +
   labs(
-    title = "Wildlife Strikes by Time of Day and Month",
-    x = "Month",
+    title = paste("Wildlife Strikes in", selected_month),
+    x = "Time of Day",
     y = "Number of Strikes",
     fill = "Time of Day"
-  ) 
+  )
+
+monthly_plot
+```
+
+```{r}
+#| message: false
+#| warning: false
+
+# Graph 4:
+selected_species <- "White-tailed deer"
+
+species_plot <- faa_data |>
+  filter(!is.na(time_of_day), species == selected_species) |>
+  count(time_of_day) |>
+  ggplot(aes(x = time_of_day, y = n, fill = time_of_day)) +
+  geom_col() +
+  labs(
+    title = paste("Wildlife Strikes Involving", selected_species),
+    x = "Time of Day",
+    y = "Number of Strikes",
+    fill = "Time of Day"
+  )
+
+species_plot
 ```
 
 #### Statistical Test
+To formally test whether wildlife strikes are evenly distributed across times of day, we conducted a Chi-square goodness-of-fit test.
+
+**Statistical Hypthesis:**
+
+**Null hypothesis ($H_0$):**  
+Wildlife strikes are evenly distributed across time-of-day categories.
+**Alternative hypothesis ($H_1$):**  
+Wildlife strikes are not evenly distributed across time-of-day categories.
+
+Observed Counts: 
 ```{r}
 #| message: false
 #| warning: false
+strike_counts <- faa_data |>
+  filter(!is.na(time_of_day)) |>
+  mutate(month = lubridate::month(incident_date, label = TRUE, abbr = FALSE)) |>
+  filter(month == selected_month) |>
+  count(time_of_day)
+
+print(strike_counts)
 
 ```
 
-## Shiny App
-The next step was to convert all of this into a shiny app. The code for the app follows. 
+Visualization (We can compare the actual and expected counts visually before we do the statistical test): 
 ```{r}
 #| message: false
 #| warning: false
-#| output: false
 
-pacman::p_load(tidyverse, readxl, lubridate, janitor, shiny, plotly, shinythemes)
+chi_data <- faa_data |> 
+  filter(!is.na(time_of_day)) |> 
+  count(time_of_day) |> 
+  arrange(time_of_day)
 
-# App setup
-ui <- navbarPage(
-  title = "FAA Wildlife Strikes",
-  theme = shinythemes::shinytheme("readable"),
-  tabPanel("Overview",
-           fluidPage(
-             h3("Project Overview"),
-             p("DATA-413 Final Project"),
-             p("Carson Cherniss & Ainsley Gallagher"),
-             h4("Research Question:"),
-             p("During what time of day are wildlife strikes by aircraft most common?"), 
-             h4("Dataset:"),
-             p("The dataset comes from the Federal Aviation Administration (FAA) Wildlife Strike Database. 
-             It contains detailed records of wildlife strikes involving civil aircraft in the United States. 
-             This analysis uses data from 1990 to 2023, with approximately 300,000 observations and variables including 
-               'incident date,' 'time of day,' 'species,' and 'location.'"), 
-             h4("Methods:"),
-             tags$ul(
-               tags$li("Exploratory Data Analysis: Visualizations of wildlife strikes by time of day and hour of day."),
-               tags$li("Seasonal Trends: Interactive plot allowing users to view monthly breakdowns."),
-               tags$li("Statistical Test: Chi-square test to evaluate whether wildlife strikes are evenly distributed across different times of day.")
-             )
-           )
-  ),
-  tabPanel("Data Visualization: Time of Day",
-           fluidPage(
-             h3("Wildlife Strikes by Time of Day"),
-             plotlyOutput("timeOfDayPlot"),
-             p("Based on this visualization, it appears that wildlife strikes are most common during the day. 
-               We investigate this further with statisitcal testing."),
-             p("Without a codebook, we do not know what hours of the day were classified as 'day', 'night', 'dawn' or 'dusk'. 
-               Thus, we can also visualize the distribution of wildlife strikes by hour of the day."),
-             h3("Wildlife Strikes by Hour of Day"),
-             plotlyOutput("timePlot"),
-             p("Here, we can see that strikes appear most common between 7 and 11.
-               Wildlife strikes seem common between the hours of 7 and 23. We can investigate this further with statistical testing.")
-           )
-  ),
-  tabPanel("Data Visualization: Monthly Trends",
-           fluidPage(
-             h3("Wildlife Strikes by Month"),
-             p("Data visualization has shown that wildlife strikes appear most common during the day.
-               Those visualizations are for all strikes throughout the year. However, things like migration habits of birds may cause this trend to change throughout the year.
-               With this visualization, we can see how trends change throughout the year."),
-             selectInput("selected_month", "Select a Month:", choices = month.name),
-             plotlyOutput("monthlyPlot"),
-             p("Here, we can see that the overall trend of 'day' having the most wildlife strikes holds true for most months.
-               However, October has an interesting discrepency, where 'night' has more strikes than 'day'.
-               This could be due to bird migrations."), 
-             p("The winter months (January, February and December) as well as the summer months (June, July and August) 
-               have the greatest difference between the amount of 'day' and 'night' strikes.
-               Whereas spring and fall months have a smaller difference between 'day' and 'night' strikes. This could be due to the migratory patterns of birds, 
-               as birds tend to migrate in the fall and the spring and may be more active in the skies during these times.")
-           )
-  ), 
-  tabPanel("Statistical Test",
-           fluidPage(
-             h3("Chi-Square Test Results")
-           )
+chi_test <- chisq.test(chi_data$n)
+
+chi_data <- chi_data |> 
+  mutate(expected = chi_test$expected)
+
+plot_data <- chi_data |> 
+  pivot_longer(cols = c(n, expected), names_to = "type", values_to = "count")
+
+# Plot observed vs expected
+ggplot(plot_data, aes(x = time_of_day, y = count, fill = type)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(
+    values = c("n" = "#1f77b4", "expected" = "#ff7f0e"),
+    labels = c("Observed", "Expected")
+  ) +
+  labs(
+    title = "Observed vs. Expected Wildlife Strike Counts",
+    x = "Time of Day",
+    y = "Number of Strikes",
+    fill = "Count Type"
   )
-)
-
-# Server
-server <- function(input, output) {
-  # Load data inside the server so it only loads when the app runs
-  faa_data <- reactive({
-    read_excel("Public.xlsx") |>
-      mutate(
-        INCIDENT_DATE = as_date(INCIDENT_DATE),
-        LUPDATE = as_date(LUPDATE),
-        TIME = lubridate::hm(TIME)
-      ) |>
-      janitor::clean_names()
-  })
-  
-  # Bar plot of time_of_day
-  output$timeOfDayPlot <- renderPlotly({
-    ggplotly(
-      faa_data() |> 
-        filter(!is.na(time_of_day)) |> 
-        count(time_of_day) |> 
-        ggplot(aes(x = fct_reorder(time_of_day, n), y = n, fill = time_of_day)) +
-        geom_col() +
-        labs(title = "Strikes by Time of Day", x = "Time of Day", y = "Number of Strikes")
-    )
-  })
-  
-  # Bar plot of time
-  output$timePlot <- renderPlotly({
-    ggplotly(
-      faa_data() |> 
-        filter(!is.na(time)) |> 
-        mutate(hour = hour(time)) |> 
-        ggplot(aes(x = hour)) +
-        geom_histogram(binwidth = 1, fill = "tomato") +
-        labs(title = "Wildlife Strikes by Hour of Day",
-             x = "Hour",
-             y = "Number of Strikes")
-    )
-  })
-  
-  # Monthly plot if we want to keep it
-  output$monthlyPlot <- renderPlotly({
-    req(input$selected_month)
-    
-    ggplotly(
-      faa_data() |> 
-        filter(!is.na(time_of_day)) |> 
-        mutate(month = lubridate::month(incident_date, label = TRUE, abbr = FALSE)) |>
-        filter(month == input$selected_month) |>
-        count(time_of_day) |> 
-        ggplot(aes(x = time_of_day, y = n, fill = time_of_day)) +
-        geom_col() +
-        labs(
-          title = paste("Wildlife Strikes in", input$selected_month),
-          x = "Time of Day",
-          y = "Number of Strikes",
-          fill = "Time of Day"
-        )
-    )
-  })
-}
-
-# Run app
-shinyApp(ui = ui, server = server)
 ```
+
+Chi-square test: 
+```{r}
+#| message: false
+#| warning: false
+
+```
+

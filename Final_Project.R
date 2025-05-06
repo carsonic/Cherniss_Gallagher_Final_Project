@@ -69,3 +69,7 @@ faa_data |>
   ) 
 
 # We can see that the Day variable seems to be consistently highest throughout the year, except in October which is interesting
+
+# Statistical Test: 
+# H0: Wildlife strikes are uniformly distributed across times of day.
+# HA: Wildlife strikes are NOT uniformly distributed across times of day.
