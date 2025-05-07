@@ -5,7 +5,7 @@ format: pdf
 ---
 
 ## Data and Data Cleaning
-**Shiny App:** <>
+**Shiny App:** <https://carsonic.shinyapps.io/final_project_shiny_app/>
 **GitHub:** <https://github.com/carsonic/Cherniss_Gallagher_Final_Project>
 **Dataset:** <https://wildlife.faa.gov/home>
 
@@ -79,7 +79,7 @@ faa_data |>
        y = "Number of Strikes")
 ```
 
-The additional 2 graphs will allow us to add an interactive element to the shiny app. The code will change slightly when used in the app, but it will allow us to see the `time_ofday` variable bar graph but broken down by month. 
+The additional 2 graphs will allow us to add an interactive element to the shiny app. The code will change slightly when used in the app, but it will allow us to see the `time_of_day` variable bar graph but broken down by month. 
 ```{r}
 #| message: false
 #| warning: false
@@ -147,7 +147,6 @@ strike_counts <- faa_data |>
   count(time_of_day)
 
 print(strike_counts)
-
 ```
 
 Visualization (We can compare the actual and expected counts visually before we do the statistical test): 
@@ -187,6 +186,8 @@ Chi-square test:
 ```{r}
 #| message: false
 #| warning: false
-
+#| echo: false
+chisq_test <- chisq.test(strike_counts$n)
+chisq_test
 ```
 

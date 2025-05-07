@@ -22,7 +22,9 @@ ui <- navbarPage(
                tags$li("Exploratory Data Analysis: Visualizations of wildlife strikes by time of day and hour of day."),
                tags$li("Monthly and Species Trends: Interactive plots allowing users to view monthly and species breakdowns. These plots could offer explanations for why we got the results we did for our statistical test."),
                tags$li("Statistical Test: We used a Chi-square goodness-of-fit test to determine whether the categorical variable time_of_day shows a uniform distribution or not.")
-             )
+             ), 
+             h4("Download Data:"),
+             downloadButton("download_data", "Download Cleaned FAA Data")
            )
   ),
   tabPanel("Data Visualization: Time of Day",
@@ -106,14 +108,15 @@ ui <- navbarPage(
 # Server
 server <- function(input, output) {
   # Load data inside the server so it only loads when the app runs
+  # Some changes had to be made to the data cleaning when using csv instead of excel file
   faa_data <- reactive({
     read_csv("Public.csv") |> 
       janitor::clean_names() |> 
       mutate(
-        # Dates are already `date` type, so no need to re-parse
+        # Dates are already date type, so no need to parse
         # incident_date = as_date(incident_date),
         # lupdate = as_date(lupdate),
-        # time = lubridate::hm(time)  # REMOVE this line
+        # time = lubridate::hm(time)
       )
   })
   
@@ -234,6 +237,17 @@ server <- function(input, output) {
                           labels = c("Observed", "Expected"))
     )
   })
+
+  # Download Data Through Shiny App
+  output$download_data <- downloadHandler(
+    filename = function() {
+      paste("cleaned_faa_data_", Sys.Date(), ".csv", sep = "")
+    },
+    content = function(file) {
+      faa_data() |> 
+        write_csv(file)
+    }
+  )
 }
 
 # Run app
