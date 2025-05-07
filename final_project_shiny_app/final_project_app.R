@@ -3,7 +3,7 @@ pacman::p_load(tidyverse, readxl, lubridate, janitor, shiny, plotly, shinythemes
 # App setup
 ui <- navbarPage(
   title = "FAA Wildlife Strikes",
-  theme = shinythemes::shinytheme("united"),
+  theme = shinythemes::shinytheme("cerulean"),
   tabPanel("Overview",
            fluidPage(
              h3("Project Overview"),
@@ -36,7 +36,7 @@ ui <- navbarPage(
              h3("Wildlife Strikes by Hour of Day"),
              plotlyOutput("timePlot"),
              p("Here, we can see that strikes appear most common between 7 and 11.
-               Wildlife strikes seem common between the hours of 7 and 23. We can investigate this further with statistical testing.")
+               Wildlife strikes seem common between the hours of 7 and 23. The lack of strikes between the hours of 0 and 6 makes sense, as this is when the least amount of flights would be occuring.")
            )
   ),
   tabPanel("Data Visualization: Monthly and Species Trends",
@@ -53,7 +53,9 @@ ui <- navbarPage(
              p("The winter months (January, February and December) as well as the summer months (June, July and August) 
                have the greatest difference between the amount of 'day' and 'night' strikes.
                Whereas spring and fall months have a smaller difference between 'day' and 'night' strikes. This could be due to the migratory patterns of birds, 
-               as birds tend to migrate in the fall and the spring and may be more active in the skies during these times."), 
+               as birds tend to migrate in the fall and the spring and may be more active in the skies during these times."),
+             p("The higher amount of night strikes in the fall could be due to the fact that the sun sets earlier, so there are more 'night' hours.
+               However, if this were the case, we would expect to see more 'night' strikes in the winter months as well as the fall, which we do not."),
              h3("Wildlife Strikes by Species"),
              uiOutput("species_selector"),
              plotlyOutput("speciesPlot"),
@@ -105,13 +107,14 @@ ui <- navbarPage(
 server <- function(input, output) {
   # Load data inside the server so it only loads when the app runs
   faa_data <- reactive({
-    read_excel("Public.xlsx") |>
+    read_csv("Public.csv") |> 
+      janitor::clean_names() |> 
       mutate(
-        INCIDENT_DATE = as_date(INCIDENT_DATE),
-        LUPDATE = as_date(LUPDATE),
-        TIME = lubridate::hm(TIME)
-      ) |>
-      janitor::clean_names()
+        # Dates are already `date` type, so no need to re-parse
+        # incident_date = as_date(incident_date),
+        # lupdate = as_date(lupdate),
+        # time = lubridate::hm(time)  # REMOVE this line
+      )
   })
   
   # Bar plot of time_of_day
