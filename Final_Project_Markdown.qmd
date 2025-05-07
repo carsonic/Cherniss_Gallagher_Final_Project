@@ -6,8 +6,8 @@ format: pdf
 
 ## Data and Data Cleaning
 **Shiny App:** <https://carsonic.shinyapps.io/final_project_shiny_app/>
-**GitHub:** <https://github.com/carsonic/Cherniss_Gallagher_Final_Project>
-**Dataset:** <https://wildlife.faa.gov/home>
+**GitHub:** <https://github.com/carsonic/Cherniss_Gallagher_Final_Project>,  <https://github.com/AinsGalla/FinalProjectDS/tree/main>
+**Dataset:** <https://wildlife.faa.gov/home> 
 
 ### Research Question: 
 **During what time of day are wildlife collisions most common?**
@@ -39,6 +39,8 @@ faa_data <- faa_data |>
 # Clean names using janitor package
 faa_data <- faa_data |> 
   janitor::clean_names()
+
+# When using csv data, which I had to do for the shiny app to function properly, parsing the dates is not neccessary, they already show up as dates when you download the data. Attempting to parse time in particular causes the second graph to not render. Be careful using the csv version vs. the excel version. 
 ```
 
 ## Exploratory Data Analysis
@@ -54,8 +56,8 @@ First graph is a bar chart showing how the count of wildlife strikes is distribu
 faa_data |> 
   filter(!is.na(time_of_day)) |> 
   count(time_of_day) |> 
-  ggplot(aes(x = fct_reorder(time_of_day, n), y = n)) +
-  geom_col(fill = "tomato") +
+  ggplot(aes(x = fct_reorder(time_of_day, n), y = n, fill = time_of_day)) +
+  geom_col() +
   labs(
     title = "Wildlife Strikes by Time of Day",
     x = "Time of Day",
@@ -140,10 +142,9 @@ Observed Counts:
 ```{r}
 #| message: false
 #| warning: false
+#| echo: false
 strike_counts <- faa_data |>
   filter(!is.na(time_of_day)) |>
-  mutate(month = lubridate::month(incident_date, label = TRUE, abbr = FALSE)) |>
-  filter(month == selected_month) |>
   count(time_of_day)
 
 print(strike_counts)
