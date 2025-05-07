@@ -6,11 +6,13 @@ format: pdf
 
 ## Data and Data Cleaning
 **Shiny App:** <https://carsonic.shinyapps.io/final_project_shiny_app/>
+
 **GitHub:** <https://github.com/carsonic/Cherniss_Gallagher_Final_Project>,  <https://github.com/AinsGalla/FinalProjectDS/tree/main>
+
 **Dataset:** <https://wildlife.faa.gov/home> 
 
 ### Research Question: 
-**During what time of day are wildlife collisions most common?**
+During what time of day are wildlife collisions most common?
 
 ### Cleaning in Excel
 Dataset over 130MB, too large to upload to GitHub, very slow loading into R. 
@@ -39,9 +41,8 @@ faa_data <- faa_data |>
 # Clean names using janitor package
 faa_data <- faa_data |> 
   janitor::clean_names()
-
-# When using csv data, which I had to do for the shiny app to function properly, parsing the dates is not neccessary, they already show up as dates when you download the data. Attempting to parse time in particular causes the second graph to not render. Be careful using the csv version vs. the excel version. 
 ```
+I also downloaded the data as a csv file. The file was larger so I did not use it for most of the exploratory data analysis. However, I foudn out I needed it when I was trying to publish the shiny app and it would not work with the excel file. When using csv data, parsing the dates is not neccessary, they already show up as dates when you download the data. Attempting to parse time in particular causes the second graph to not render. Be careful using the csv version vs. the excel version. 
 
 ## Exploratory Data Analysis
 We created data visualizations and conducted a statistical test to investigate our hypothesis. 
@@ -142,7 +143,6 @@ Observed Counts:
 ```{r}
 #| message: false
 #| warning: false
-#| echo: false
 strike_counts <- faa_data |>
   filter(!is.na(time_of_day)) |>
   count(time_of_day)
@@ -187,7 +187,6 @@ Chi-square test:
 ```{r}
 #| message: false
 #| warning: false
-#| echo: false
 chisq_test <- chisq.test(strike_counts$n)
 chisq_test
 ```
